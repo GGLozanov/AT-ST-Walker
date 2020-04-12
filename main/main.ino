@@ -42,6 +42,10 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // have!
 #define SERVOMIN  125 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  575 // this is the 'maximum' pulse length count (out of 4096)
+#define SERVO_COUNT 2
+#define ANGLE_MARGIN 20
+#define MAX_ANGLE 180
+#define SERVO_LOOPS 5
 
 // our servo # counter
 uint8_t servonum = 0;
@@ -53,22 +57,31 @@ void setup() {
   pwm.begin();
   
   pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+}
 
-  //yield();
+int angle_to_pulse(int angle) {
+  return map(angle, 0, 180, SERVOMIN, SERVOMAX);
+  // maps from degree out of 0 to 180 and to 125 to 575
 }
 
 // the code inside loop() has been updated by Robojax
 void loop() {
   Serial.println("Start of pwm");
 
-    pwm.setPWM(0, 0, 125 );
-  delay(500);
-    pwm.setPWM(0, 0, 255 );
-  delay(500);
-    pwm.setPWM(0, 0, 450 );
-  delay(500);
-    pwm.setPWM(0, 0, 575 );
-  delay(500); 
+  // 125 - 0 degrees
+  // 575 - 180 degrees
+  for(int servo = 0; servo < SERVO_COUNT; servo++) {
+    for(int i = 0; i < SERVO_LOOPS; i++) {
+      int angl = random(0, 180);
+      int converted_pulse = angle_to_pulse(angl);
+      // pwm.setPWM(servo, 0, SERVOMIN);
+      delay(500);
+      pwm.setPWM(servo, 0, converted_pulse);
+      delay(500);
+     //  pwm.setPWM(servo, 0, SERVOMAX);
+     // delay(500); 
+    }
+  }
 
  
 }
