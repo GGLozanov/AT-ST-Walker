@@ -15,6 +15,10 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define LEG_COUNT 1 // TODO: Change to 2 legs
 #define MAX_ANGLE 180
 
+#define LEG_WAIT 2000 // delay for 1 leg movement
+#define CYCLE_WAIT 1000 // delay for 1 cycle (1 dual servo movement)
+#define MOVE_WAIT 500 // delay for 1 movement
+
 void setup() {
   Serial.begin(9600);
   Serial.println("16 channel Servo test!");
@@ -29,15 +33,53 @@ int angle_to_pulse(int angle) {
   // maps from degree out of 0 to 180 and to 125 to 575
 }
 
+void move_two(int servo1, int servo2, int angle) {
+  pwm.setPWM(servo1, 0, angle_to_pulse(angle));
+  delay(MOVE_WAIT);
+  pwm.setPWM(servo2, 0, angle_to_pulse(angle));
+}
+
+void move_leg(int servo1, int servo2) {
+  move_two(servo1, servo2, 85);
+  
+  delay(CYCLE_WAIT);
+  
+  move_two(servo1, servo2, 75);
+  
+  delay(CYCLE_WAIT);
+  
+  move_two(servo1, servo2, 65);
+  
+  delay(CYCLE_WAIT);
+  
+  move_two(servo1, servo2, 55);
+  
+  delay(CYCLE_WAIT);
+  
+  move_two(servo1, servo2, 45); // TODO: Optimise
+}
+
+void rebalance_leg(int servo1, int servo2) {
+  move_two(servo1, servo2, 55);
+
+  delay(CYCLE_WAIT);
+
+  move_two(servo1, servo2, 65);
+   
+  delay(CYCLE_WAIT);
+
+  move_two(servo1, servo2, 75);
+
+  delay(CYCLE_WAIT);
+  
+  move_two(servo1, servo2, 90);
+}
+
 void walk_cycle(int servo1, int servo2) {
-  pwm.setPWM(servo1, 0, angle_to_pulse(45));
-  delay(4000);
-  pwm.setPWM(servo2, 0, angle_to_pulse(45));
-  delay(4000);
-  pwm.setPWM(servo1, 0, angle_to_pulse(90));
-  delay(4000);
-  pwm.setPWM(servo2, 0, angle_to_pulse(90));
-  delay(4000); 
+  move_leg(servo2, servo1); // start with secondary servo (lower leg)
+  delay(LEG_WAIT);
+  rebalance_leg(servo2, servo1);
+  delay(LEG_WAIT); 
 }
 
 // the code inside loop() has been updated by Robojax
